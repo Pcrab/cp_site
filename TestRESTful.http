@@ -1,0 +1,7 @@
+POST 127.0.0.1:8000/user/create/
+Content-Type: application/json
+
+{
+  "username": "pcrab",
+  "password": "ufl5jum7dbljqye5jg6zalsmoojykriiup2ysrn1vhfpe4yrpwf4o829m9qsgz718r9016xcwnswq2yv2oqermpicp2cqgzly7ssag34l7ie4m1wmwzjkxnnvunpu5wz"
+}
