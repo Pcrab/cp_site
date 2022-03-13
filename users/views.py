@@ -12,7 +12,7 @@ from .models import User, UserCreateException
 @csrf_exempt
 def login(request):
     user_post = get_user_post(request)
-    if user_post and User.check_existence_unsafe(user_post["username"]):
+    if user_post and User.is_exist(username=user_post["username"], password=user_post["password"]):
         request.session["username"] = user_post["username"]
         return HttpResponse(f"welcome, {user_post['username']}")
     return HttpResponseBadRequest("username or password wrong")
