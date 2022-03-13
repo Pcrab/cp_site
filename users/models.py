@@ -31,13 +31,13 @@ class User(models.Model):
         raise UserCreateException("Invalid User")
 
     @staticmethod
-    def check_existence_unsafe(username: str) -> bool:
+    def is_exist_unsafe(username: str) -> bool:
         if User.objects.filter(username=username):
             return True
         return False
 
     @staticmethod
-    def check_existence(username: str, password: str) -> bool:
+    def is_exist(username: str, password: str) -> bool:
         if User.objects.filter(username=username, password=password):
             return True
         return False
