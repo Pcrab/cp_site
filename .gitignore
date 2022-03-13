@@ -1,1 +1,4 @@
 .idea
+
+# will not update in future, keep origin for test
+secret.config.json
