@@ -1,5 +1,9 @@
 .idea
 .env
 
+**/__pycache__
+
 # will not update in future, keep origin for test
 secret.config.json
+
+TestRESTful.http
