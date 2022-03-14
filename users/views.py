@@ -41,6 +41,16 @@ def logout(request):
     return HttpResponseBadRequest("Already logout")
 
 
+@require_POST
+@csrf_exempt
+def destroy(request):
+    user_post = get_user_post(request)
+    if User.is_exist(user_post["username"], user_post["password"]):
+        user = User.get_user(user_post["username"], user_post["password"])
+        user.delete()
+
+
+
 def get_user_post(request):
     user_post = json.loads(request.body)
     username = user_post["username"]

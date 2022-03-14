@@ -43,6 +43,14 @@ class User(models.Model):
         return False
 
     @staticmethod
+    def get_user_unsafe(username: str):
+        return User.objects.get(username=username)
+
+    @staticmethod
+    def get_user(username: str, password: str):
+        return User.objects.get(username=username, password=password)
+
+    @staticmethod
     def is_valid_without_salt(username: str, password: str) -> bool:
         if 0 < len(username) <= 20 and 128 == len(password):
             return True
