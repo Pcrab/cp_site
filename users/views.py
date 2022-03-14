@@ -1,7 +1,7 @@
 # Create your views here.
 import json
 
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 
@@ -12,10 +12,12 @@ from .models import User, UserCreateException
 @csrf_exempt
 def login(request):
     user_post = get_user_post(request)
-    if user_post and User.is_exist(username=user_post["username"], password=user_post["password"]):
-        request.session["username"] = user_post["username"]
-        return HttpResponse(f"welcome, {user_post['username']}")
-    return HttpResponseBadRequest("username or password wrong")
+    if user_post is None:
+        return HttpResponseBadRequest("username or password wrong")
+    elif not User.is_exist(username=user_post["username"], password=user_post["password"]):
+        return HttpResponseNotFound("user not found")
+    request.session["username"] = user_post["username"]
+    return HttpResponse(f"welcome, {user_post['username']}")
 
 
 @require_POST
@@ -41,6 +43,8 @@ def logout(request):
 
 def get_user_post(request):
     user_post = json.loads(request.body)
-    if not (user_post["username"] or user_post["password"]):
-        return None
-    return user_post
+    username = user_post["username"]
+    password = user_post["password"]
+    if username and password and User.is_valid_without_salt(username=username, password=password):
+        return user_post
+    return None

@@ -42,6 +42,12 @@ class User(models.Model):
             return True
         return False
 
+    @staticmethod
+    def is_valid_without_salt(username: str, password: str) -> bool:
+        if 0 < len(username) <= 20 and 128 == len(password):
+            return True
+        return False
+
     def is_valid(self) -> bool:
         if 0 < len(self.username) <= 20 and 128 == len(self.password) == len(self.salt):
             return True
