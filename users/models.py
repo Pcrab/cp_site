@@ -1,94 +1,83 @@
-import hashlib
-import random
-import string
+from secrets import compare_digest
 
+import argon2.exceptions
+from argon2 import PasswordHasher
 from django.db import models
 
 
 # Create your models here.
 
-# class UserErrorEnum(IntFlag):
-#     UsernameNotFound = auto()
-#     PasswordNotCorrect = auto()
-#     FormatNotCorrect = auto()
+_username_len = 20
+_password_len = 128
 
 class User(models.Model):
-    username = models.CharField(max_length=20, unique=True)
-    password = models.CharField(max_length=128)
-    salt = models.CharField(max_length=128)
+    username = models.CharField(max_length=_username_len, unique=True)
+    password = models.CharField(max_length=_password_len)
 
     def __str__(self):
-        return self.username + '\n' + self.password + '\n' + self.salt
+        return f"username: {self.username}" + '\n' + f"password: {str(self.password)}"
 
     @staticmethod
-    def create_user(user) -> None:
-        salt = create_salt(len(user["password"]))
-        password = encrypt(user["password"], salt)
-        user = User(username=user["username"], password=password, salt=salt)
-        if user.is_valid():
+    def create_user(username: str, unencrypted_password: str) -> bool:
+        try:
+            password = _encrypt(unencrypted_password)
+            if User.is_exist_unsafe(username=username):
+                return False
+            user = User(username=username, password=password)
             user.save()
-            return
-        raise UserCreateException("Invalid User")
+            return True
+        except ValueError:
+            return False
 
     @staticmethod
     def is_exist_unsafe(username: str) -> bool:
-        if User.objects.filter(username=username):
+        user = User._get_user_unsafe(username=username)
+        if user:
             return True
         return False
 
     @staticmethod
-    def is_exist(username: str, password: str) -> bool:
-        if User.objects.filter(username=username, password=password):
+    def is_exist(username: str, unencrypted_password: str) -> bool:
+        user = User._get_user_unsafe(username=username)
+        if user:
+            return _check_password(unencrypted_password, user.password)
+        return False
+
+    @staticmethod
+    def _get_user_unsafe(username: str):
+        try:
+            user = User.objects.get(username=username)
+            return user
+        except models.ObjectDoesNotExist:
+            return None
+
+    @staticmethod
+    def destroy(username: str, unencrypted_password: str) -> bool:
+        user = User._get_user_unsafe(username)
+        if _check_password(unencrypted_password, user.password):
+            user.delete()
             return True
         return False
 
     @staticmethod
-    def get_user_unsafe(username: str):
-        return User.objects.get(username=username)
-
-    @staticmethod
-    def get_user(username: str, password: str):
-        return User.objects.get(username=username, password=password)
-
-    @staticmethod
-    def is_valid_without_salt(username: str, password: str) -> bool:
-        if 0 < len(username) <= 20 and 128 == len(password):
+    def is_valid(username: str, unencrypted_password: str) -> bool:
+        if 0 < len(username) <= _username_len and len(unencrypted_password) == _password_len:
             return True
         return False
 
-    def is_valid(self) -> bool:
-        if 0 < len(self.username) <= 20 and 128 == len(self.password) == len(self.salt):
-            return True
+    def check_password(self, password: str) -> bool:
+        return _check_password(self.password, password)
+
+
+def _encrypt(password: str) -> str | None:
+    ph = PasswordHasher()
+    return ph.hash(password)
+
+
+def _check_password(password: str, hashed_password: str) -> bool:
+    ph = PasswordHasher()
+
+    try:
+        ph.verify(hashed_password, password)
+    except argon2.exceptions.VerifyMismatchError:
         return False
-
-
-class UserException(Exception):
-    def __init__(self, ErrorInfo):
-        super().__init__(self)
-        self.errorInfo = ErrorInfo
-
-    def __str__(self):
-        return self.errorInfo
-
-
-class UserCreateException(UserException):
-    pass
-
-
-def create_salt(length) -> str:
-    result = ""
-    for _ in range(length):
-        result += random.sample(string.ascii_lowercase + string.digits, 1)[0]
-    return result
-
-
-def encrypt(password: str, salt: str) -> str | None:
-    if len(password) != len(salt):
-        return None
-    for _ in range(100):
-        sh = hashlib.sha3_512()
-        password += salt
-        sh.update(password.encode("utf-8"))
-        password = sh.hexdigest()
-
-    return password
