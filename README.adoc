@@ -1,0 +1,8 @@
+= CP_SITE
+XianWei Pang <pcrab@pcrab.xyz>
+
+:toc:
+
+file://README_CN.adoc[中文]
+
+TODO...

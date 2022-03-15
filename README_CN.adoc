@@ -1,0 +1,11 @@
+= CP_SITE
+XianWei Pang <pcrab@pcrab.xyz>
+
+:toc:
+
+file://README.adoc[English]
+
+简介
+---
+
+一个简单的聊天软件后端，支持基础操作，包括用户认证，点对点聊天以及群组聊天等功能。
