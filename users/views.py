@@ -2,6 +2,7 @@
 import json
 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.utils.html import escape
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 
@@ -17,7 +18,7 @@ def login(request):
     elif not User.is_exist(username=user_post["username"], unencrypted_password=user_post["password"]):
         return HttpResponseNotFound("user not found")
     request.session["username"] = user_post["username"]
-    return HttpResponse(f"welcome, {user_post['username']}")
+    return HttpResponse(f"welcome, {escape(user_post['username'])}")
 
 
 @require_POST
@@ -27,7 +28,7 @@ def create(request):
     if not user_post:
         return HttpResponseBadRequest("username or password wrong")
     if User.create_user(username=user_post["username"], unencrypted_password=user_post["password"]):
-        return HttpResponse(user_post)
+        return HttpResponse(escape(user_post))
     return HttpResponseBadRequest("create failed")
 
 
